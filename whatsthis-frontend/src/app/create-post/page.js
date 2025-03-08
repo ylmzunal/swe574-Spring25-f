@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "../../context/UserContext";
 import axiosInstance from "../../services/axiosInstance";
 
 const CreatePostPage = () => {
   const { user } = useUser();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
+  const [isEditing, setIsEditing] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -336,6 +339,8 @@ const CreatePostPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
 
     if (!user) {
       setError("You must be logged in to create a post.");
@@ -382,14 +387,20 @@ const CreatePostPage = () => {
       createdAt: new Date().toISOString()
     };
 
-    setLoading(true);
     try {
-      const response = await axiosInstance.post('/posts', postData);
+      const method = isEditing ? 'put' : 'post';
+      const endpoint = isEditing ? `/posts/${editId}` : '/posts';
+
+      const response = await axiosInstance[method](endpoint, postData);
       console.log("Post created successfully:", response.data);
-      router.push("/");
+      router.push(`/posts/${response.data.id}`);
     } catch (err) {
       console.error("Post creation failed:", err);
-      setError("Failed to create post. Please try again.");
+      if (err.response?.status === 401) {
+        router.push('/login');  // Redirect to login if unauthorized
+      } else {
+        setError("Failed to create post. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -464,13 +475,80 @@ const CreatePostPage = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const fetchPostData = async () => {
+      if (editId && user) {  // Only fetch if we have both editId and user
+        setIsEditing(true);
+        try {
+          const response = await axiosInstance.get(`/posts/${editId}`);
+          const postData = response.data;
+
+          // Check if user owns the post
+          if (postData.userId !== user.id) {
+            router.push('/404');
+            return;
+          }
+
+          // Initialize all form fields with empty strings or existing values
+          setFormData({
+            title: postData.title || "",
+            description: postData.description || "",
+            material: postData.material || "",
+            sizeValue: postData.sizeValue || "",
+            sizeUnit: postData.sizeUnit || "cm",
+            textAndLanguage: postData.textAndLanguage || "",
+            color: postData.color || "",
+            shape: postData.shape || "",
+            weightValue: postData.weightValue || "",
+            weightUnit: postData.weightUnit || "kg",
+            price: postData.price || "",
+            location: postData.location || "",
+            timePeriod: postData.timePeriod || "",
+            smell: postData.smell || "",
+            taste: postData.taste || "",
+            texture: postData.texture || "",
+            hardness: postData.hardness || "",
+            pattern: postData.pattern || "",
+            brand: postData.brand || "",
+            print: postData.print || "",
+            icons: postData.icons || "",
+            handmade: postData.handmade || false,
+            functionality: postData.functionality || "",
+            tags: postData.tags || [],
+            imageUrls: postData.imageUrls || [],
+            widthValue: postData.widthValue || "",
+            widthUnit: postData.widthUnit || "cm",
+            heightValue: postData.heightValue || "",
+            heightUnit: postData.heightUnit || "cm",
+            depthValue: postData.depthValue || "",
+            depthUnit: postData.depthUnit || "cm",
+          });
+
+          if (postData.imageUrls?.length > 0) {
+            setPreviewUrls(postData.imageUrls.map(url => ({
+              url: getFullImageUrl(url),
+              file: null
+            })));
+          }
+        } catch (error) {
+          console.error("Error fetching post data:", error);
+          router.push('/404');
+        }
+      }
+    };
+
+    fetchPostData();
+  }, [editId, router, user]);  // Add user to dependencies
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-900 text-white">
       <div className="container mx-auto py-8">
         <div className="max-w-full mx-auto bg-gray-800 rounded-lg shadow-lg p-8">
           {/* Top Section */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-center mb-4">Create a New Post</h1>
+            <h1 className="text-4xl font-bold text-center mb-4">
+              {isEditing ? 'Edit Post' : 'Create New Post'}
+            </h1>
             {error && (
               <div className="bg-red-600 text-white p-4 rounded mb-4">
                 {error}
@@ -1000,6 +1078,7 @@ const CreatePostPage = () => {
                             </label>
                             <input
                               type="text"
+                              name={field}
                               value={parts[activePartIndex][field]}
                               onChange={(e) => handlePartInputChange(activePartIndex, field, e.target.value)}
                               className="w-full px-4 py-3 rounded-lg bg-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
@@ -1116,7 +1195,7 @@ const CreatePostPage = () => {
                 className="w-full px-6 py-3 bg-teal-500 text-white rounded-lg font-semibold hover:bg-teal-600 focus:outline-none"
                 disabled={loading}
               >
-                {loading ? "Creating Post..." : "Create Post"}
+                 {isEditing ? 'Edit Post' : 'Create New Post'}
               </button>
             </div>
           </form>
