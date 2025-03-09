@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "../../context/UserContext";
 import axiosInstance from "../../services/axiosInstance";
+import { getFullImageUrl } from "../../utils/urlHelper";
 
 const CreatePostPage = () => {
   const { user } = useUser();
@@ -16,13 +17,9 @@ const CreatePostPage = () => {
     title: "",
     description: "",
     material: "",
-    sizeValue: "",
-    sizeUnit: "cm",
     textAndLanguage: "",
     color: "",
     shape: "",
-    weightValue: "",
-    weightUnit: "kg",
     price: "",
     location: "",
     timePeriod: "",
@@ -44,6 +41,8 @@ const CreatePostPage = () => {
     heightUnit: "cm",
     depthValue: "",
     depthUnit: "cm",
+    weightValue: "",
+    weightUnit: "kg"
   });
 
   
@@ -293,16 +292,11 @@ const CreatePostPage = () => {
     }
 
     const formData = new FormData();
-    
-    const newPreviewUrls = imageFiles.map(file => ({
-      url: URL.createObjectURL(file),
-      file: file
-    }));
-    setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
-    
     imageFiles.forEach((file) => formData.append("images", file));
 
     setLoading(true);
+    setError(null);
+
     try {
       const response = await axiosInstance.post("/uploads/images", formData, {
         headers: {
@@ -311,96 +305,117 @@ const CreatePostPage = () => {
       });
 
       const uploadedUrls = response.data;
-      setFormData((prev) => ({ ...prev, imageUrls: [...prev.imageUrls, ...uploadedUrls] }));
-      setImages((prev) => [...prev, ...imageFiles.map((file) => file.name)]);
+      console.log('Uploaded URLs from server:', uploadedUrls); // Debug log
+      
+      // Create preview URLs for new images
+      const newPreviewUrls = uploadedUrls.map(serverUrl => {
+        const fullUrl = getFullImageUrl(serverUrl);
+        console.log('New upload URL conversion:', { serverUrl, fullUrl }); // Debug log
+        return {
+          url: fullUrl,
+          file: null,
+          isExisting: true,
+          serverUrl: serverUrl
+        };
+      });
+
+      console.log('Current preview URLs:', previewUrls); // Debug log
+      console.log('Adding new preview URLs:', newPreviewUrls); // Debug log
+
+      // Update preview URLs and form data
+      setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
+      setFormData(prev => ({
+        ...prev,
+        imageUrls: [...prev.imageUrls, ...uploadedUrls]
+      }));
     } catch (err) {
       console.error("Image upload failed:", err);
       setError("Image upload failed. Please try again.");
-      newPreviewUrls.forEach(({ url }) => URL.revokeObjectURL(url));
-      setPreviewUrls(prev => prev.filter(p => !newPreviewUrls.includes(p)));
     } finally {
       setLoading(false);
     }
   };
 
   const removePreview = (index) => {
+    console.log('Removing preview at index:', index); // Debug log
+    console.log('Current preview URLs:', previewUrls); // Debug log
+    console.log('Current form imageUrls:', formData.imageUrls); // Debug log
+
+    // Remove from preview URLs
     setPreviewUrls(prev => {
-      const newPreviews = [...prev];
-      URL.revokeObjectURL(newPreviews[index].url);
-      newPreviews.splice(index, 1);
+      const newPreviews = prev.filter((_, i) => i !== index);
+      console.log('New preview URLs after removal:', newPreviews); // Debug log
       return newPreviews;
     });
     
-    setFormData(prev => ({
-      ...prev,
-      imageUrls: prev.imageUrls.filter((_, i) => i !== index)
-    }));
+    // Remove corresponding URL from form data
+    setFormData(prev => {
+      const newFormData = {
+        ...prev,
+        imageUrls: prev.imageUrls.filter((_, i) => i !== index)
+      };
+      console.log('New form imageUrls after removal:', newFormData.imageUrls); // Debug log
+      return newFormData;
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
 
+    // Required field validation
+    const requiredFields = {
+      title: formData.title.trim(),
+      description: formData.description.trim(),
+      images: previewUrls.length
+    };
+
+    // Check all required fields
+    for (const [field, value] of Object.entries(requiredFields)) {
+      if (!value) {
+        setError(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
+        return;
+      }
+    }
+
+    // Check description length
+    if (formData.description.trim().length < 10) {
+      setError("Description must be at least 10 characters long");
+      return;
+    }
+
+    // Check user authentication
     if (!user) {
       setError("You must be logged in to create a post.");
       return;
     }
 
-    const formattedParts = parts.map(part => ({
-      partName: part.partName,
-      material: part.material,
-      size: `${part.sizeValue || ''} ${part.sizeUnit || ''}`.trim(),
-      textAndLanguage: part.textAndLanguage,
-      color: part.color,
-      shape: part.shape,
-      weight: `${part.weightValue || ''} ${part.weightUnit || ''}`.trim(),
-      price: part.price,
-      location: part.location,
-      timePeriod: part.timePeriod,
-      smell: part.smell,
-      taste: part.taste,
-      texture: part.texture,
-      hardness: part.hardness,
-      pattern: part.pattern,
-      brand: part.brand,
-      print: part.print,
-      icons: part.icons,
-      handmade: part.handmade || false,
-      functionality: part.functionality,
-      widthValue: part.widthValue || '',
-      widthUnit: part.widthUnit || '',
-      heightValue: part.heightValue || '',
-      heightUnit: part.heightUnit || '',
-      depthValue: part.depthValue || '',
-      depthUnit: part.depthUnit || ''
-    }));
-
-    const postData = {
-      ...formData,
-      height: `${formData.heightValue} ${formData.heightUnit}`,
-      length: `${formData.lengthValue} ${formData.lengthUnit}`,
-      width: `${formData.widthValue} ${formData.widthUnit}`,
-      weight: `${formData.weightValue} ${formData.weightUnit}`,
-      userId: user.id,
-      parts: formattedParts,
-      createdAt: new Date().toISOString()
-    };
+    setLoading(true);
 
     try {
+      const imageUrls = previewUrls.map(preview => {
+        if (preview.isExisting) {
+          return preview.serverUrl.split('/').pop();
+        }
+        return preview.serverUrl;
+      });
+
+      const postData = {
+        ...formData,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        userId: user.id,
+        imageUrls: imageUrls,
+      };
+
       const method = isEditing ? 'put' : 'post';
       const endpoint = isEditing ? `/posts/${editId}` : '/posts';
-
+      
       const response = await axiosInstance[method](endpoint, postData);
-      console.log("Post created successfully:", response.data);
       router.push(`/posts/${response.data.id}`);
     } catch (err) {
-      console.error("Post creation failed:", err);
-      if (err.response?.status === 401) {
-        router.push('/login');  // Redirect to login if unauthorized
-      } else {
-        setError("Failed to create post. Please try again.");
-      }
+      console.error("Post creation/update failed:", err);
+      setError(err.message || "Failed to save post. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -477,68 +492,55 @@ const CreatePostPage = () => {
 
   useEffect(() => {
     const fetchPostData = async () => {
-      if (editId && user) {  // Only fetch if we have both editId and user
+      if (editId && user) {
         setIsEditing(true);
         try {
           const response = await axiosInstance.get(`/posts/${editId}`);
           const postData = response.data;
-
-          // Check if user owns the post
+          
           if (postData.userId !== user.id) {
             router.push('/404');
             return;
           }
-
-          // Initialize all form fields with empty strings or existing values
+          
+          console.log('Fetched post data:', postData); // Debug log
+          const imageUrls = postData.imageUrls || [];
+          console.log('Image URLs from backend:', imageUrls); // Debug log
+          
+          // Set form data with original URLs
           setFormData({
-            title: postData.title || "",
-            description: postData.description || "",
-            material: postData.material || "",
-            sizeValue: postData.sizeValue || "",
-            sizeUnit: postData.sizeUnit || "cm",
-            textAndLanguage: postData.textAndLanguage || "",
-            color: postData.color || "",
-            shape: postData.shape || "",
-            weightValue: postData.weightValue || "",
-            weightUnit: postData.weightUnit || "kg",
-            price: postData.price || "",
-            location: postData.location || "",
-            timePeriod: postData.timePeriod || "",
-            smell: postData.smell || "",
-            taste: postData.taste || "",
-            texture: postData.texture || "",
-            hardness: postData.hardness || "",
-            pattern: postData.pattern || "",
-            brand: postData.brand || "",
-            print: postData.print || "",
-            icons: postData.icons || "",
-            handmade: postData.handmade || false,
-            functionality: postData.functionality || "",
-            tags: postData.tags || [],
-            imageUrls: postData.imageUrls || [],
-            widthValue: postData.widthValue || "",
-            widthUnit: postData.widthUnit || "cm",
-            heightValue: postData.heightValue || "",
-            heightUnit: postData.heightUnit || "cm",
-            depthValue: postData.depthValue || "",
-            depthUnit: postData.depthUnit || "cm",
+            ...postData,
+            imageUrls: imageUrls
           });
 
-          if (postData.imageUrls?.length > 0) {
-            setPreviewUrls(postData.imageUrls.map(url => ({
-              url: getFullImageUrl(url),
-              file: null
-            })));
+          // Set preview URLs with full URLs for existing images
+          if (imageUrls.length > 0) {
+            const newPreviewUrls = imageUrls.map(url => {
+              const fullUrl = getFullImageUrl(url);
+              console.log('Converting URL:', { original: url, full: fullUrl }); // Debug log
+              return {
+                url: fullUrl,
+                file: null,
+                isExisting: true,
+                serverUrl: url
+              };
+            });
+            console.log('Setting preview URLs:', newPreviewUrls); // Debug log
+            setPreviewUrls(newPreviewUrls);
           }
         } catch (error) {
           console.error("Error fetching post data:", error);
-          router.push('/404');
+          if (error.response?.status === 404) {
+            router.push('/404');
+          } else {
+            setError("Failed to load post data");
+          }
         }
       }
     };
 
     fetchPostData();
-  }, [editId, router, user]);  // Add user to dependencies
+  }, [editId, user, router]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-900 text-white">
@@ -557,7 +559,10 @@ const CreatePostPage = () => {
           </div>
 
           {/* Form Section */}
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-8"
+          >
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-3">
                 <label htmlFor="title" className="block text-lg font-semibold mb-2">
@@ -585,9 +590,11 @@ const CreatePostPage = () => {
                   value={formData.description}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  rows={3}
-                  placeholder="Describe your mystery item.  What's the story behind it?"
-                ></textarea>
+                  placeholder="Enter a detailed description (minimum 10 characters)"
+                  rows={6}
+                  required
+                  minLength={10}
+                />
               </div>
             </div>
 
@@ -1156,24 +1163,34 @@ const CreatePostPage = () => {
 
             {/* Images Section */}
             <div className="bg-gray-800 rounded-lg border border-gray-700 p-6 mb-8">
-              <label className="block text-lg font-semibold mb-2">Images</label>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg"
-              />
+              <div className="lg:col-span-3">
+                <label htmlFor="images" className="block text-lg font-semibold mb-2">
+                  Images {!isEditing && <span className="text-red-500">*</span>}
+                  {isEditing && <span className="text-gray-400 text-sm ml-2">(Optional when editing)</span>}
+                </label>
+                <input
+                  type="file"
+                  id="images"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg"
+                  required={!isEditing || previewUrls.length === 0}
+                />
+                {previewUrls.length === 0 && !isEditing && (
+                  <p className="text-red-500 text-sm mt-1">At least one image is required</p>
+                )}
+              </div>
               
               {/* Image Previews */}
               {previewUrls.length > 0 && (
-                <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {previewUrls.map(({ url }, index) => (
+                <div className="mt-4 grid grid-cols-3 gap-4">
+                  {previewUrls.map((preview, index) => (
                     <div key={index} className="relative group">
                       <img
-                        src={url}
+                        src={preview.url}
                         alt={`Preview ${index + 1}`}
-                        className="w-full h-40 object-cover rounded-lg"
+                        className="w-full h-32 object-cover rounded-lg"
                       />
                       <button
                         type="button"
