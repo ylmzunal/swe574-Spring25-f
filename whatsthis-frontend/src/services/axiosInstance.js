@@ -6,7 +6,7 @@ console.log('API URL:', process.env.NEXT_PUBLIC_API_URL);
 console.log('Base URL being used:', baseURL);
 
 const axiosInstance = axios.create({
-  baseURL: baseURL,
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -15,9 +15,14 @@ const axiosInstance = axios.create({
   timeout: 30000
 });
 
+// Add auth token to requests
 
 axiosInstance.interceptors.request.use(
   config => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     console.log('Making request to:', config.url);
     console.log('Request headers:', config.headers);
     return config;
@@ -25,12 +30,12 @@ axiosInstance.interceptors.request.use(
   error => Promise.reject(error)
 );
 
-
+// Improve error logging
 axiosInstance.interceptors.response.use(
   response => response,
   error => {
-    if (error.code === 'ECONNRESET' || error.code === 'ECONNABORTED') {
-      console.error('Connection error:', error.code);
+    if (error.code === 'ECONNREFUSED') {
+      console.error('Backend connection refused. Please ensure the backend server is running.');
     }
     console.error('Request failed:', {
       url: error.config?.url,

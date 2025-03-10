@@ -111,6 +111,21 @@ const getTagDetails = async (tagId) => {
   }
 };
 
+const deletePost = async (postId) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    await axiosInstance.delete(`/posts/${postId}`);
+    return true;
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    throw error;
+  }
+};
+
 export default {
   getAllPosts,
   getPostById,
@@ -120,4 +135,5 @@ export default {
   searchPosts,
   toggleSolution,
   getTagDetails,
+  deletePost,
 };

@@ -183,4 +183,16 @@ public class PostController {
                 return postService.findAllByOrderByCreatedAtDesc(pageRequest);
         }
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletePost(@PathVariable Long id) {
+        try {
+            postService.deletePost(id);
+            return ResponseEntity.ok().build();
+        } catch (PostNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (UnauthorizedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to delete this post");
+        }
+    }
 }

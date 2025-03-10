@@ -441,4 +441,16 @@ public class PostService {
     public Page<PostDto> findAllByOrderByCreatedAtDesc(Pageable pageable) {
         return postRepo.findAllByOrderByCreatedAtDesc(pageable).map(this::toDto);
     }
+
+    @Transactional
+    public void deletePost(Long id) {
+        Post post = postRepo.findById(id)
+                .orElseThrow(() -> new PostNotFoundException(id));
+
+        // Delete all comments associated with the post
+        commentRepo.deleteByPostId(id);
+
+        // Delete the post
+        postRepo.delete(post);
+    }
 }
