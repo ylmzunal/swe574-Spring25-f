@@ -10,6 +10,6 @@ app.prepare().then(() => {
     handle(req, res);
   }).listen(3000, '0.0.0.0', (err) => {
     if (err) throw err;
-    console.log(`> Ready on http://${process.env.VM_IP || 'localhost'}:3000`);
+    console.log(`> Ready on http://${VM_IP}:3000`);
   });
 }); 

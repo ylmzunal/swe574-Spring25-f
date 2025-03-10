@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "../../context/UserContext";
 import axiosInstance from "../../services/axiosInstance";
 import { getFullImageUrl } from "../../utils/urlHelper";
 
-const CreatePostPage = () => {
+function CreatePostContent() {
   const { user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1222,4 +1222,10 @@ const CreatePostPage = () => {
   );
 };
 
-export default CreatePostPage;
+export default function CreatePostPage() {
+	return (
+		 <Suspense fallback={<div>Loading...</div>}>
+      <CreatePostContent />
+    </Suspense>
+	);
+}
