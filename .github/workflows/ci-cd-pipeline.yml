@@ -24,7 +24,7 @@ jobs:
       # Step 3: Build the backend using Maven
       - name: 🏗️ Build backend
         run: |
-          cd backend
+          cd src
           mvn clean package -DskipTests
 
       # Step 4: Set up Node.js for frontend
@@ -33,7 +33,7 @@ jobs:
         with:
           node-version: '18'
       - run: |
-          cd frontend
+          cd whatsthis-frontend
           npm install
           npm run build
 
