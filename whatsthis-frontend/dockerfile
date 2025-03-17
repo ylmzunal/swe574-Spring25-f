@@ -1,33 +1,23 @@
-FROM node:18 AS builder
+# Use Node.js as the base image
+FROM node:18 AS build
 
+# Set the working directory
 WORKDIR /app
 
-# Use npm ci for faster, reliable installs
-COPY package*.json ./
-RUN npm ci
+# Copy package.json and install dependencies
+COPY package.json .
+RUN npm install
 
+# Copy the source code and build the frontend
 COPY . .
-
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-ENV NODE_ENV=production
-
 RUN npm run build
 
-FROM node:18-alpine
+# Use Nginx to serve the frontend
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
 
-WORKDIR /app
+# Expose port 80
+EXPOSE 80
 
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/server.js ./
-
-EXPOSE 3000
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-ENV NODE_ENV production
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-
-CMD ["node", "server.js"]
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
