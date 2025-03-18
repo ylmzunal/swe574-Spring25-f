@@ -78,6 +78,7 @@ jobs:
         run: gcloud auth list
 
       - name: 🚀 Deploy Backend to Cloud Run
+        id: deploy-backend
         run: |
           gcloud run deploy backend \
             --image ${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }} \
@@ -90,7 +91,6 @@ jobs:
             --memory=512Mi \
             --min-instances=0 \
             --max-instances=10 \
-            --no-cpu-throttling \
             --cpu-boost \
             --no-use-http2 \
             --set-env-vars="SPRING_PROFILES_ACTIVE=prod" \
@@ -100,9 +100,12 @@ jobs:
             --set-env-vars="STORAGE_BUCKET=${{ secrets.STORAGE_BUCKET }}" \
             --set-env-vars="SERVER_PORT=8080" \
             --set-env-vars="JAVA_TOOL_OPTIONS=-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom" \
-            --set-env-vars="JWT_SECRET=${{ secrets.JWT_SECRET_KEY }}" \
-            --service-account=${{ secrets.GCP_SA_NAME }} \
-            --update-env-vars
+            --set-env-vars="JWT_SECRET=${{ secrets.JWT_SECRET_KEY }}"
+          
+          # Get the backend URL and save it for the next step
+          BACKEND_URL=$(gcloud run services describe backend --platform managed --region us-central1 --format="value(status.url)")
+          echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
+          echo "Backend deployed at $BACKEND_URL"
 
       - name: 🚀 Deploy Frontend to Cloud Run
         run: |
@@ -113,3 +116,4 @@ jobs:
             --port=3000 \
             --timeout=300s \
             --allow-unauthenticated \
+            --set-env-vars="NEXT_PUBLIC_API_URL=${{ env.BACKEND_URL }}"
