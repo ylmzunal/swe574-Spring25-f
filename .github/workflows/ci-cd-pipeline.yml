@@ -27,7 +27,9 @@ jobs:
       - name: 🏗️ Build backend
         run: |
           # Build with root pom.xml file
-          mvn clean package -DskipTests -Dspring.profiles.active=prod
+          mvn clean package -DskipTests \
+            -Dspring.profiles.active=prod \
+            -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
 
           # Inspect JAR contents
           echo "==== Checking JAR file structure ===="
@@ -98,11 +100,6 @@ jobs:
             --min-instances=0 \
             --max-instances=10 \
             --set-env-vars="SPRING_PROFILES_ACTIVE=prod" \
-            --set-env-vars="SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" \
-            --set-env-vars="SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
-            --set-env-vars="SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
-            --set-env-vars="STORAGE_BUCKET=${{ secrets.STORAGE_BUCKET }}" \
-            --set-env-vars="JWT_SECRET=${{ secrets.JWT_SECRET_KEY }}" \
             --allow-unauthenticated
           
           # Get the backend URL and save it for the next step
