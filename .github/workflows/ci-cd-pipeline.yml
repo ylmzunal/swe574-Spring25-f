@@ -97,7 +97,6 @@ jobs:
             --set-env-vars="SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
             --set-env-vars="STORAGE_BUCKET=${{ secrets.STORAGE_BUCKET }}" \
             --set-env-vars="SERVER_PORT=8080" \
-            --set-env-vars="PORT=8080" \
             --set-env-vars="JWT_SECRET=${{ secrets.JWT_SECRET_KEY }}"
 
       - name: 🚀 Deploy Frontend to Cloud Run
@@ -109,5 +108,3 @@ jobs:
             --port=3000 \
             --timeout=300s \
             --allow-unauthenticated \
-            --set-env-vars="NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" \
-            --set-env-vars="PORT=3000"
