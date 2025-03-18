@@ -70,6 +70,9 @@ jobs:
         with:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
+      
+      - name: 🔑 Check Google Cloud Authentication
+        run: gcloud auth list
 
       - name: 🚀 Deploy Backend to Cloud Run
         run: |
