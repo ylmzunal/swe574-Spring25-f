@@ -85,19 +85,24 @@ jobs:
             --region us-central1 \
             --allow-unauthenticated \
             --port=8080 \
-            --timeout=300s \
+            --timeout=600s \
             --cpu=1 \
             --memory=512Mi \
             --min-instances=0 \
             --max-instances=10 \
+            --no-cpu-throttling \
             --cpu-boost \
+            --no-use-http2 \
             --set-env-vars="SPRING_PROFILES_ACTIVE=prod" \
             --set-env-vars="SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" \
             --set-env-vars="SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
             --set-env-vars="SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
             --set-env-vars="STORAGE_BUCKET=${{ secrets.STORAGE_BUCKET }}" \
             --set-env-vars="SERVER_PORT=8080" \
-            --set-env-vars="JWT_SECRET=${{ secrets.JWT_SECRET_KEY }}"
+            --set-env-vars="JAVA_TOOL_OPTIONS=-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom" \
+            --set-env-vars="JWT_SECRET=${{ secrets.JWT_SECRET_KEY }}" \
+            --service-account=${{ secrets.GCP_SA_NAME }} \
+            --update-env-vars
 
       - name: 🚀 Deploy Frontend to Cloud Run
         run: |
