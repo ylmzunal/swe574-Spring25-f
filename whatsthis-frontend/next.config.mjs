@@ -5,13 +5,13 @@ const nextConfig = {
     },
     output: 'standalone',
     env: {
-        NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL
+        NEXT_PUBLIC_API_URL: 'https://backend-260519333154.us-central1.run.app'
     },
     async rewrites() {
         return [
             {
                 source: '/api/:path*',
-                destination: 'http://${VM_IP}:8080/api/:path*',
+                destination: 'https://backend-260519333154.us-central1.run.app/api/:path*',
             },
         ];
     }

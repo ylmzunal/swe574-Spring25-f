@@ -86,20 +86,13 @@ jobs:
             --region us-central1 \
             --allow-unauthenticated \
             --port=8080 \
-            --timeout=600s \
-            --cpu=1 \
             --memory=512Mi \
-            --min-instances=0 \
-            --max-instances=10 \
-            --cpu-boost \
-            --no-use-http2 \
+            --timeout=600s \
             --set-env-vars="SPRING_PROFILES_ACTIVE=prod" \
             --set-env-vars="SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" \
             --set-env-vars="SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
             --set-env-vars="SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
             --set-env-vars="STORAGE_BUCKET=${{ secrets.STORAGE_BUCKET }}" \
-            --set-env-vars="SERVER_PORT=8080" \
-            --set-env-vars="JAVA_TOOL_OPTIONS=-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom" \
             --set-env-vars="JWT_SECRET=${{ secrets.JWT_SECRET_KEY }}"
           
           # Get the backend URL and save it for the next step

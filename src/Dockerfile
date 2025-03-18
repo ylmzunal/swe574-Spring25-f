@@ -1,28 +1,20 @@
-# Use a full JDK image for better compatibility
+# Simple Dockerfile for Cloud Run
 FROM --platform=linux/amd64 eclipse-temurin:17-jdk
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the JAR file
+# Copy the jar file
 COPY target/*.jar app.jar
 
-# Create directory for file uploads
-RUN mkdir -p uploads
+# Create logging directory to see if this helps
+RUN mkdir -p logs
+RUN chmod 777 logs
 
-# Debug log files
-RUN ls -la /app
+# For debugging
+RUN echo "Contents of /app:" && ls -la /app
 
-# Expose port 8080 (Cloud Run standard)
+# Expose the port
 EXPOSE 8080
 
-# Create a startup script
-RUN echo '#!/bin/sh' > /app/start.sh && \
-    echo 'echo "Starting Spring Boot application on port $PORT"' >> /app/start.sh && \
-    echo 'echo "Java version: $(java -version)"' >> /app/start.sh && \
-    echo 'echo "Using the following JVM options: -Dserver.port=$PORT -Dspring.profiles.active=prod"' >> /app/start.sh && \
-    echo 'java -Dserver.port=$PORT -Dspring.profiles.active=prod -jar app.jar' >> /app/start.sh && \
-    chmod +x /app/start.sh
-
-# Run the application with explicit server port
-CMD ["sh", "-c", "/app/start.sh"]
+# Simple command that forces the port to 8080 regardless of environment
+CMD ["java", "-jar", "/app/app.jar", "--server.port=8080"]
