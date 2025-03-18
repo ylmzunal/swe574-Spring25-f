@@ -26,8 +26,12 @@ jobs:
 
       - name: 🏗️ Build backend
         run: |
-          cd src  # Backend için doğru klasöre git
+          cd src
           mvn clean package -DskipTests -Dspring.profiles.active=prod
+          echo "==== Checking JAR file structure ===="
+          ls -la target/*.jar
+          echo "==== Checking JAR content ===="
+          jar tf target/*.jar | grep -i WhatsthisApplication || echo "Main class not found in JAR!"
 
       - name: 🏗️ Set up Node.js
         uses: actions/setup-node@v3
