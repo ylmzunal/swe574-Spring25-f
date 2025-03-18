@@ -100,6 +100,11 @@ jobs:
             --min-instances=0 \
             --max-instances=10 \
             --set-env-vars="SPRING_PROFILES_ACTIVE=prod" \
+            --set-env-vars="SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" \
+            --set-env-vars="SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
+            --set-env-vars="SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
+            --set-env-vars="STORAGE_BUCKET=${{ secrets.STORAGE_BUCKET }}" \
+            --set-env-vars="JWT_SECRET=${{ secrets.JWT_SECRET_KEY }}" \
             --allow-unauthenticated
           
           # Get the backend URL and save it for the next step

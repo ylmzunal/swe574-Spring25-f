@@ -21,10 +21,11 @@ java -Djava.security.egd=file:/dev/./urandom \\\n\
      -Dserver.address=0.0.0.0 \\\n\
      -Dspring.profiles.active=prod \\\n\
      -Dspring.main.web-application-type=servlet \\\n\
+     -Dspring.main.allow-bean-definition-overriding=true \\\n\
      -Dspring.datasource.url="" \\\n\
      -Dspring.datasource.username="" \\\n\
      -Dspring.datasource.password="" \\\n\
-     -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration \\\n\
+     -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration \\\n\
      -jar /app/app.jar\n' > /app/startup.sh && chmod +x /app/startup.sh
 
 # Expose the port

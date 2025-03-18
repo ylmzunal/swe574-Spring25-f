@@ -75,7 +75,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<version>${project.parent.version}</version>
 				<configuration>
-					<mainClass>dev.swe573.whatsthis.WhatsthisApplication</mainClass>
+					<mainClass>dev.swe573.whatsthis.CloudRunApplication</mainClass>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
