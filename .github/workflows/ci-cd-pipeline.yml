@@ -66,10 +66,13 @@ jobs:
             ${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG }}
 
       - name: 🔧 Set up Google Cloud CLI
-        uses: google-github-actions/setup-gcloud@v1
+        uses: google-github-actions/auth@v1
         with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
       
       - name: 🔑 Check Google Cloud Authentication
         run: gcloud auth list
@@ -86,7 +89,7 @@ jobs:
             --set-env-vars="SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
             --set-env-vars="SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
             --set-env-vars="STORAGE_BUCKET=${{ secrets.STORAGE_BUCKET }}" \
-            --set-env-vars="JWT_SECRET=${{ secrets.JWT_SECRET }}"
+            --set-env-vars="JWT_SECRET=${{ secrets.JWT_SECRET_KEY }}"
 
       - name: 🚀 Deploy Frontend to Cloud Run
         run: |
