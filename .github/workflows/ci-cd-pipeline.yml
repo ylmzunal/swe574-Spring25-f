@@ -78,14 +78,11 @@ jobs:
         run: gcloud auth list
 
       - name: 🚀 Deploy Backend to Cloud Run
-        id: deploy-backend
         run: |
           gcloud run deploy backend \
             --image ${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }} \
             --platform managed \
             --region us-central1 \
-            --allow-unauthenticated \
-            --port=8080 \
             --memory=512Mi \
             --timeout=600s \
             --set-env-vars="SPRING_PROFILES_ACTIVE=prod" \
