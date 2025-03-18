@@ -106,6 +106,14 @@ jobs:
           BACKEND_URL=$(gcloud run services describe backend --platform managed --region us-central1 --format="value(status.url)")
           echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
           echo "Backend deployed at $BACKEND_URL"
+          
+          # Get the latest revision name
+          REVISION=$(gcloud run revisions list --service=backend --region=us-central1 --platform=managed --sort-by=~metadata.creationTimestamp --limit=1 --format="value(metadata.name)")
+          echo "Latest revision: $REVISION"
+          
+          # Try to fetch logs to help with debugging
+          echo "Fetching logs (this may fail if the revision is not ready):"
+          gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=backend AND resource.labels.revision_name=$REVISION" --limit=50 || echo "Failed to fetch logs"
 
       - name: 🚀 Deploy Frontend to Cloud Run
         run: |
