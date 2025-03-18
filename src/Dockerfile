@@ -10,13 +10,14 @@ COPY target/*.jar app.jar
 # Create directory for file uploads
 RUN mkdir -p uploads
 
-# Set environment variables
-ENV PORT=8080
+# Set environment variables for Spring Boot
 ENV SPRING_PROFILES_ACTIVE=prod
-ENV JAVA_TOOL_OPTIONS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+
+# Optimize JVM startup for containers
+ENV JAVA_TOOL_OPTIONS="-XX:InitialRAMPercentage=70 -XX:MaxRAMPercentage=70 -XX:+UseContainerSupport -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Djava.security.egd=file:/dev/./urandom"
 
 # Expose port 8080 (Cloud Run standard)
 EXPOSE 8080
 
-# Run the application
-ENTRYPOINT ["java", "-Dserver.port=${PORT}", "-jar", "app.jar"]
+# Run the application - use PORT environment variable which is set by Cloud Run
+CMD ["sh", "-c", "java -Dserver.port=${PORT} -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE} -jar app.jar"]
