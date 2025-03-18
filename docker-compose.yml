@@ -1,16 +1,33 @@
-version: "3.8"
-
 services:
   backend:
-    build: ./backend
+    platform: linux/amd64
+    build: 
+      context: ./src
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    volumes:
+      - ./env.properties:/app/src/main/resources/env.properties
     environment:
-      SPRING_PROFILES_ACTIVE: production
+      - SPRING_PROFILES_ACTIVE=production
+    networks:
+      - app-network
 
   frontend:
-    build: ./frontend
+    platform: linux/amd64
+    build: 
+      context: ./whatsthis-frontend
+      dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "8080:8080"
     depends_on:
       - backend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3000/api
+      - VM_IP=localhost
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
