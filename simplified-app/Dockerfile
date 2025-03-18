@@ -1,7 +1,5 @@
-# Simple Dockerfile for Cloud Run
 FROM eclipse-temurin:17-jdk
 
-# Set working directory
 WORKDIR /app
 
 # Copy the JAR file
@@ -14,4 +12,4 @@ EXPOSE 8080
 ENV PORT=8080
 
 # Run the application
-CMD ["java", "-Dserver.port=${PORT}", "-jar", "/app/app.jar"]
+CMD ["java", "-Dserver.port=${PORT}", "-jar", "/app/app.jar"] 
