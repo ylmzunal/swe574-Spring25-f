@@ -85,6 +85,7 @@ jobs:
             --region us-central1 \
             --allow-unauthenticated \
             --port=8080 \
+            --timeout=300s \
             --set-env-vars="SPRING_PROFILES_ACTIVE=prod" \
             --set-env-vars="SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" \
             --set-env-vars="SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
@@ -100,5 +101,7 @@ jobs:
             --platform managed \
             --region us-central1 \
             --port=3000 \
+            --timeout=300s \
             --allow-unauthenticated \
-            --set-env-vars="NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}"
+            --set-env-vars="NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" \
+            --set-env-vars="PORT=3000"

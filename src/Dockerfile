@@ -13,5 +13,5 @@ RUN mkdir -p uploads
 # Expose port 8080 (Cloud Run standard)
 EXPOSE 8080
 
-# Run the application with production profile
-CMD ["java", "-jar", "app.jar", "--spring.profiles.active=prod"]
+# Run the application with production profile and explicit port
+CMD ["java", "-jar", "app.jar", "--server.port=8080", "--spring.profiles.active=prod"]
