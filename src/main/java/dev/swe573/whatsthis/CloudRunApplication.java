@@ -5,31 +5,30 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.web.servlet.function.RouterFunction;
-import org.springframework.web.servlet.function.ServerResponse;
-
-import static org.springframework.web.servlet.function.RouterFunctions.route;
-import static org.springframework.web.servlet.function.ServerResponse.ok;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication(exclude = {
     DataSourceAutoConfiguration.class,
     HibernateJpaAutoConfiguration.class,
     JpaRepositoriesAutoConfiguration.class
 })
+@RestController
 public class CloudRunApplication {
 
     public static void main(String[] args) {
-        System.out.println("Starting Cloud Run Application (No Database)...");
+        System.out.println("Starting minimal Cloud Run application");
         SpringApplication.run(CloudRunApplication.class, args);
-        System.out.println("Cloud Run Application started successfully!");
+        System.out.println("Application started successfully");
     }
 
-    @Bean
-    public RouterFunction<ServerResponse> routes() {
-        return route()
-            .GET("/", request -> ok().body("WhatsThis API is running (Database disabled)"))
-            .GET("/health", request -> ok().body("OK"))
-            .build();
+    @GetMapping("/")
+    public String home() {
+        return "WhatsThis API is running (Database disabled)";
+    }
+
+    @GetMapping("/health")
+    public String health() {
+        return "OK";
     }
 } 
