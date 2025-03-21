@@ -16,7 +16,7 @@ EXPOSE 8080
 
 # Run the application directly
 CMD ["java", "-Djava.security.egd=file:/dev/./urandom", \
-     "-Dserver.port=${PORT:8080}", \
+     "-Dserver.port=8080", \
      "-Dserver.address=0.0.0.0", \
      "-Dspring.profiles.active=prod", \
      "-Dspring.main.web-application-type=servlet", \
