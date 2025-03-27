@@ -28,15 +28,15 @@ jobs:
         run: |
           # Build with root pom.xml file
           mvn clean package -DskipTests \
-            -Dspring.profiles.active=prod \
-            -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+            -Dspring.profiles.active=minimal \
+            -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
 
           # Inspect JAR contents
           echo "==== Checking JAR file structure ===="
           ls -la target/*.jar
           
           echo "==== Checking JAR content ===="
-          jar tf target/*.jar | grep -i WhatsthisApplication || echo "Main class not found in JAR!"
+          jar tf target/*.jar | grep -i Application || echo "Main class not found in JAR!"
 
       - name: 🏗️ Set up Node.js
         uses: actions/setup-node@v3
@@ -99,12 +99,7 @@ jobs:
             --port=8080 \
             --min-instances=0 \
             --max-instances=10 \
-            --set-env-vars="SPRING_PROFILES_ACTIVE=prod" \
-            --set-env-vars="SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" \
-            --set-env-vars="SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
-            --set-env-vars="SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
-            --set-env-vars="STORAGE_BUCKET=${{ secrets.STORAGE_BUCKET }}" \
-            --set-env-vars="JWT_SECRET=${{ secrets.JWT_SECRET_KEY }}" \
+            --set-env-vars="SPRING_PROFILES_ACTIVE=minimal" \
             --allow-unauthenticated
           
           # Get the backend URL and save it for the next step

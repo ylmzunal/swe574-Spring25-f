@@ -2,20 +2,14 @@ package dev.swe573.whatsthis;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 
-// Explicitly exclude all database-related configuration
-@Configuration
-@ComponentScan(basePackages = {"dev.swe573.whatsthis.minimal"})
-@EnableAutoConfiguration(exclude = {
+@SpringBootApplication(exclude = {
     DataSourceAutoConfiguration.class,
     HibernateJpaAutoConfiguration.class
 })
@@ -23,17 +17,14 @@ import java.util.Map;
 public class MinimalApplication {
 
     public static void main(String[] args) {
-        // Print system properties for debugging
-        System.out.println("JAVA_HOME: " + System.getProperty("java.home"));
+        // Print environment for debugging
+        System.out.println("Starting MinimalApplication...");
         System.out.println("PORT: " + System.getenv("PORT"));
-        System.out.println("Profile: " + System.getProperty("spring.profiles.active"));
+        System.out.println("PROFILES: " + System.getProperty("spring.profiles.active"));
         
-        // Run with explicit configuration to ensure no auto-config
-        SpringApplication app = new SpringApplication(MinimalApplication.class);
-        app.setAdditionalProfiles("minimal");
-        app.run(args);
+        SpringApplication.run(MinimalApplication.class, args);
         
-        System.out.println("Minimal application started successfully");
+        System.out.println("MinimalApplication started successfully");
     }
 
     @GetMapping("/")
